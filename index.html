@@ -2,77 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Minimal Mobile 2D Game</title>
+  <title>Simple Movable Square</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #000;
-      height: 100%;
-      touch-action: none; /* Prevent scrolling */
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      touch-action: manipulation;
+      user-select: none;
     }
-    canvas {
-      display: block;
-      background: #111;
+    #board {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      background: #fff;
+      border: 1px solid #ccc;
+      margin-bottom: 16px;
+    }
+    #square {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: #000;
+      top: 80px;
+      left: 80px;
+      transition: top 0.1s, left 0.1s;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .btn {
+      width: 48px;
+      height: 48px;
+      font-size: 24px;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 48px;
+      user-select: none;
+      touch-action: manipulation;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <canvas id="game"></canvas>
+  <div id="board">
+    <div id="square"></div>
+  </div>
+  <div class="controls">
+    <div class="btn" data-dir="up">⬆️</div>
+    <div class="btn" data-dir="left">⬅️</div>
+    <div class="btn" data-dir="down">⬇️</div>
+    <div class="btn" data-dir="right">➡️</div>
+  </div>
   <script>
-    // ====== Canvas Setup ======
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    const square = document.getElementById('square');
+    const step = 40; // size of "one space"
+    const min = 0, max = 160;
+    let pos = { top: 80, left: 80 };
+
+    function move(dir) {
+      if(dir === 'up') pos.top = Math.max(min, pos.top - step);
+      if(dir === 'down') pos.top = Math.min(max, pos.top + step);
+      if(dir === 'left') pos.left = Math.max(min, pos.left - step);
+      if(dir === 'right') pos.left = Math.min(max, pos.left + step);
+      square.style.top = pos.top + 'px';
+      square.style.left = pos.left + 'px';
     }
 
-    // ====== Game State ======
-    const player = {
-      x: canvas.width / 2,
-      y: canvas.height / 2,
-      size: 30,
-      speed: 5,
-      targetX: canvas.width / 2,
-      targetY: canvas.height / 2
-    };
-
-    // ====== Touch Input ======
-    canvas.addEventListener('touchstart', handleTouch);
-    canvas.addEventListener('touchmove', handleTouch);
-
-    function handleTouch(e) {
-      e.preventDefault();
-      const touch = e.touches[0];
-      player.targetX = touch.clientX - player.size / 2;
-      player.targetY = touch.clientY - player.size / 2;
-    }
-
-    // ====== Game Loop ======
-    function update() {
-      // Simple smooth movement towards touch
-      player.x += (player.targetX - player.x) * 0.2;
-      player.y += (player.targetY - player.y) * 0.2;
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'white';
-      ctx.fillRect(player.x, player.y, player.size, player.size);
-    }
-
-    function gameLoop() {
-      update();
-      draw();
-      requestAnimationFrame(gameLoop);
-    }
-
-    // ====== Start Game ======
-    gameLoop();
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('touchstart', e => {
+        e.preventDefault();
+        move(btn.getAttribute('data-dir'));
+      });
+      btn.addEventListener('click', () => {
+        move(btn.getAttribute('data-dir'));
+      });
+    });
   </script>
 </body>
 </html>
